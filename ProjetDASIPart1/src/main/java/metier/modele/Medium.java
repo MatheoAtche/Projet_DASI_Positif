@@ -41,8 +41,8 @@ public class Medium implements Serializable {
     public Medium(String nom, String descriptif) {
         this.nom = nom;
         this.descriptif = descriptif;
-        this.voyances = new ArrayList<Voyance>();
-        this.employes = new ArrayList<Employe>();
+        this.voyances = new ArrayList<>();
+        this.employes = new ArrayList<>();
     }
 
     public void ajouteNouvelleVoyance(Voyance voyance) {

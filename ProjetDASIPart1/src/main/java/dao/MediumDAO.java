@@ -9,13 +9,12 @@ package dao;
  *
  * @author slabouchei
  */
-import java.util.Iterator;
 import java.util.List;
 import javax.persistence.Query;
 import metier.modele.Client;
 import metier.modele.Employe;
 import metier.modele.Medium;
-import metier.modele.Voyance;
+
 
 public class MediumDAO {
 

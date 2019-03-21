@@ -74,7 +74,7 @@ public class VoyanceDAO {
     */
     public static List<Voyance> rechercheVoyancesFaitesClient (Client client) {
         
-        String jpql = "select v from Voyance v where v.client.idClient= :idClient and v.etat = 'Terminée'";
+        String jpql = "select v from Voyance v where v.client.idClient= :idClient and v.etat = 'Terminée' order by v.dateDebut";
         System.out.println(client.getId());
         long idClient = client.getId();
         Query query = JpaUtil.obtenirEntityManager().createQuery(jpql);

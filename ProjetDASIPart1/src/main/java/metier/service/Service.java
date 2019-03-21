@@ -685,4 +685,8 @@ public class Service {
 
         return resultat;
     }
+    
+    public static String deconnecterUtilisateur () {
+        return "Aucun";
+    }
 }

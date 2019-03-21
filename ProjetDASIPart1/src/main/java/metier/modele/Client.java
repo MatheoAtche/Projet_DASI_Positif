@@ -55,7 +55,7 @@ public class Client implements Serializable {
         this.adresse = adresse;
         this.telephone = telephone;
         this.courriel = courriel;
-        this.voyances = new ArrayList<Voyance>();
+        this.voyances = new ArrayList<>();
     }
 
     public void ajouteNouvelleVoyance(Voyance voyance) {

@@ -49,8 +49,8 @@ public class Employe implements Serializable {
         this.mdp = mdp;
         this.nbConsultations = 0;
         this.etat = "Disponible";
-        this.voyances = new ArrayList<Voyance>();
-        this.mediums = new ArrayList<Medium>();
+        this.voyances = new ArrayList<>();
+        this.mediums = new ArrayList<>();
     }
     
     public void ajouteNouvelleVoyance(Voyance voyance) {

@@ -26,6 +26,7 @@ public class Voyant extends Medium {
         this.specialite = specialite;
     }
     
+    @Override
     public String toString () {
         String chaine = super.toString();
         chaine += " - Specialité : " + specialite;

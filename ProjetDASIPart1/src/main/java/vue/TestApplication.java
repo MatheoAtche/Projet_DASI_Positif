@@ -126,7 +126,7 @@ public class TestApplication {
             Service.creerVoyance(clientConnecte,mediumSouhaite);
       
         }
-        
+        profilConnecte = Service.deconnecterUtilisateur();
         
         /**
          * ******* On teste l'employé *********
@@ -243,6 +243,8 @@ public class TestApplication {
             
             
         }
+        
+        profilConnecte = Service.deconnecterUtilisateur();
         
         JpaUtil.destroy();
 
