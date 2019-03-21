@@ -5,12 +5,11 @@
  */
 package dao;
 
+import java.util.Iterator;
 import java.util.List;
+import javax.persistence.NoResultException;
 import javax.persistence.Query;
-import metier.modele.Client;
 import metier.modele.Employe;
-import metier.modele.Medium;
-import metier.modele.Voyance;
 
 /**
  *
@@ -18,40 +17,64 @@ import metier.modele.Voyance;
  */
 public class EmployeDAO {
     
-    public static List<Employe> rechercherEmploye (String courriel, String mdpasse){
-         
-        String jpql = "select e from Employe e where e.courriel = :courriel and e.mdp = :mdpasse";
+    /*
+    ** Rôle : Savoir si un employé est présent
+    **        dans la base
+    ** Entrée : Le courriel
+    ** Sortie : L'employe (s'il existe)
+    */
+    public static Employe estPresentEmploye(String courriel) {
+        
+        String jpql = "select e from Employe e where e.courriel = :mail";
         Query query = JpaUtil.obtenirEntityManager().createQuery(jpql);
-        query.setParameter("courriel", courriel);
-        query.setParameter("mdpasse", mdpasse);
-        List<Employe> resultat = (List<Employe>) query.getResultList();
+        query.setParameter("mail", courriel);
+        Employe resultat = null;
+        try {
+            resultat = (Employe) query.getSingleResult();
+        } catch(NoResultException e) {
+            resultat = null;
+        }
         return resultat;
     }
-     
-    public static List<Employe> trouverEmployeCompetent(String medium) {
+       
+    
+    /*
+    ** Rôle : Trouver l'employé compétent
+    **        pour un médium donné
+    ** Entrée : L'identifiant du médium
+    ** Sortie : La liste des employés possibles
+    **          triées par ordre de consultations
+    **          déjà faites
+    */
+    public static List<Employe> trouverEmployeCompetent(int medium) {
+        
         String jpql = "select e from Employe e join e.mediums m where m.id= :medium and e.etat = :etat order by e.nbConsultations";
         Query query = JpaUtil.obtenirEntityManager().createQuery(jpql);
-        query.setParameter("medium", Integer.parseInt(medium));
+        query.setParameter("medium",medium);
         query.setParameter("etat", "Disponible");
         List<Employe> resultat = (List<Employe>) query.getResultList();
         return resultat;
     }
     
+    /*
+    ** Rôle : Ajouter un employé dans la base
+    ** Entrée : L'employé
+    ** Sortie : aucune
+    */
     public static void ajouterEmploye(Employe employe) {
+        
         JpaUtil.obtenirEntityManager().persist(employe);
     }
     
+    /*
+    ** Rôle : Mettre à jour un employé dans la base
+    ** Entrée : L'employé
+    ** Sortie : aucune
+    */
     public static void majEmploye(Employe employe) {
+        
         JpaUtil.obtenirEntityManager().merge(employe);
     }
-    /*
-    public static List<Employe> recevoirNotificationClient (Client client) {
-        String jpql = "select e from Employe e join e.voyances v, v.client c where e.etat='Disponible' and v.etat='Non débutée' and c.idClient= :idClient";
-        long idClient = client.getId();
-        Query query = JpaUtil.obtenirEntityManager().createQuery(jpql);
-        query.setParameter("idClient",idClient);
-        List<Employe> resultat = (List<Employe>) query.getResultList();
-        return resultat;
-    }
-    */
+    
+    
 }

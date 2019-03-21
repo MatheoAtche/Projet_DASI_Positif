@@ -130,6 +130,11 @@ public class Employe implements Serializable {
         return idEmploye;
     }
 
+    @Override
+    public String toString() {
+        return "Employe{" + "nom=" + nom + ", prenom=" + prenom + ", nbConsultations=" + nbConsultations + '}';
+    }
+
 
 
 }

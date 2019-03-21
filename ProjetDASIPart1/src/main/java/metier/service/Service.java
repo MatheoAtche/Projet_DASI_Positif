@@ -10,11 +10,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.persistence.NoResultException;
 import javax.persistence.RollbackException;
 import metier.modele.Astrologue;
 import metier.modele.Client;
@@ -24,6 +23,8 @@ import metier.modele.Tarologue;
 import metier.modele.Voyance;
 import metier.modele.Voyant;
 import util.AstroTest;
+import util.DebugLogger;
+import util.Message;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -36,15 +37,32 @@ import util.AstroTest;
  */
 public class Service {
     
+    /*
+    ** Rôle : Renvoyer la liste des médiums
+    ** Entrée : aucune
+    ** Sortie : Renvoie la liste des médiums présents dans la base
+    */
     public static List<Medium> afficherMediums(){
-
+        
+        List<Medium> mediumsVoyants = null;
         JpaUtil.creerEntityManager();
-        List<Medium> mediumsVoyants = MediumDAO.listerMediums();
-        JpaUtil.fermerEntityManager();
+        try {
+            mediumsVoyants = MediumDAO.listerMediums();
+        } catch (Exception e) {
+            DebugLogger.log("Erreur afficherMediums",e);
+        }
+        finally {
+            JpaUtil.fermerEntityManager();
+        }
         return mediumsVoyants;
-
     }
     
+    /*
+    ** Rôle : Initialiser la base de données avec des clients, 
+    **        des médiums et des employés 
+    ** Entrée : aucune
+    ** Sortie : aucune
+    */
     public static void initialiserApplication () throws ParseException {
         
         SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
@@ -131,6 +149,8 @@ public class Service {
             
              
         } catch (RollbackException ex) {
+            JpaUtil.annulerTransaction();
+        } finally {
             JpaUtil.fermerEntityManager();
         }
     
@@ -140,213 +160,529 @@ public class Service {
         
     }
     
-    public static List<Employe> trouverEmployeCompetent (String medium) {
-        List<Employe> employesCapables = EmployeDAO.trouverEmployeCompetent(medium);
+    /*
+    ** Rôle : Trouver les employés compétents pouvant
+    **        incarner le médium souhaité
+    ** Entrée : L'identifiant du médium
+    ** Sortie : La liste des employés compétents
+    */
+    public static List<Employe> trouverEmployeCompetent (int medium) {
+        
+        List<Employe> employesCapables = null;
+        try {
+             employesCapables = EmployeDAO.trouverEmployeCompetent(medium);
+        } catch(Exception e) {
+            DebugLogger.log("Erreur trouverEmployeCompetent",e);
+        } 
         return employesCapables;
     }
     
     
-    public static List<Employe> rechercheEmployePourMedium(Client client,String mediumSouhaite){
-        JpaUtil.creerEntityManager();
-        List<Employe> employesChoisis = Service.trouverEmployeCompetent(mediumSouhaite);
-        JpaUtil.fermerEntityManager();
+    /*
+    ** Rôle : Trouver les employés compétents pouvant
+    **        incarner le médium souhaité
+    ** Entrée : L'identifiant du médium
+    ** Sortie : La liste des employés compétents
+    */
+    public static List<Employe> rechercheEmployePourMedium(int mediumSouhaite){
+        
+        List<Employe> employesChoisis = null;
+        try {
+            JpaUtil.creerEntityManager();
+            employesChoisis= Service.trouverEmployeCompetent(mediumSouhaite);
+        } catch (Exception e) {
+            DebugLogger.log("Erreur rechercheEmployePourMedium",e);
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+        
         return employesChoisis;
         
     }
     
-    public static Voyance validerVoyance(Client client,Medium medium,Employe employe) throws ParseException {
+    /*
+    ** Rôle : Valider la voyance par l'employé concerné 
+    ** Entrée : Le client, l'employé et le médium incarné
+    ** Sortie : La voyance validée
+    */
+    public static Voyance validerVoyance(Client client,Medium medium,Employe employe) {
         
         Date dateActuelle = new Date();
         String commentaire = "";
-        /*SimpleDateFormat format1 = new SimpleDateFormat("yyyy-MM-dd");
-        String dateString1 = format1.format(new Date());
-        Date date = format1.parse("1998-10-04"); // au format "1988-11-05"*/
-        
         Voyance voyance = new Voyance(commentaire,dateActuelle,client,medium,employe);
+        
         employe.ajouteNouvelleVoyance(voyance);
         client.ajouteNouvelleVoyance(voyance);
         medium.ajouteNouvelleVoyance(voyance);
         employe.setNbConsultations(employe.getNbConsultations()+1);
         employe.setEtat("Non disponible");
         
-        JpaUtil.creerEntityManager();
-        JpaUtil.ouvrirTransaction();
-        
-        VoyanceDAO.majVoyance(voyance);
-        EmployeDAO.majEmploye(employe);
-        ClientDAO.majClient(client);
-        MediumDAO.majMedium(medium);
-        
-        JpaUtil.validerTransaction();
-        JpaUtil.fermerEntityManager();
+        try {
+            JpaUtil.creerEntityManager();
+            JpaUtil.ouvrirTransaction();
+
+            VoyanceDAO.creerVoyance(voyance);
+            EmployeDAO.majEmploye(employe);
+            ClientDAO.majClient(client);
+            MediumDAO.majMedium(medium);
+
+            JpaUtil.validerTransaction();
+            
+        } catch(RollbackException ex) {
+            JpaUtil.annulerTransaction();
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
         
         return voyance;
         
     }
     
-    public static List<Medium> choisirMedium(String idMedium) {
+    /*
+    ** Rôle : Trouver un médium particulier 
+    ** Entrée : L'identifiant d'un médium
+    ** Sortie : Le médium trouvé
+    */
+    public static Medium choisirMedium(int idMedium) {
+        
         JpaUtil.creerEntityManager();
-        List<Medium> medium = new ArrayList<Medium>();
+        Medium medium = null;
         try {
             medium = MediumDAO.chercherMedium(idMedium);
-        } catch(RollbackException ex) {
-            System.out.println("Nexiste aps");
+        } catch(NoResultException e) {
+            DebugLogger.log("Erreur choisirMedium",e);
+        } finally {
+            JpaUtil.fermerEntityManager();
         }
-        
-        JpaUtil.fermerEntityManager();
+
         return medium;
     }
     
     /*
-    public static List<Employe> recevoirNotification (Client client) {
-        
-        JpaUtil.creerEntityManager();
-        List <Employe> retour = EmployeDAO.recevoirNotificationClient(client);
-        JpaUtil.fermerEntityManager();
-        return retour;
-    }
+    ** Rôle : Trouver un client pour un employé
+    ** Entrée : L'employé
+    ** Sortie : Le client trouvé (ou pas)
     */
-    
-    public static List<Client> rechercherVoyance (Employe employe) {
+    public static Client rechercherClientPourUnEmploye (Employe employe) {
         
         JpaUtil.creerEntityManager();
-        List <Client> retour = ClientDAO.rechercherVoyance(employe);
-        JpaUtil.fermerEntityManager();
+        Client retour = null;
+        try {
+            retour = ClientDAO.rechercherClientPourUnEmploye(employe);
+        } catch(Exception e) {
+            retour= null;
+            DebugLogger.log("Erreur rechercherVoyanceClientEmploye",e);
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
         return retour;
     }
     
+    /*
+    ** Rôle : Inscrire un client
+    ** Entrée : Un client
+    ** Sortie : Si l'inscription s'est bien passée
+    */
     public static boolean inscrireClient(Client client) {
         
         JpaUtil.creerEntityManager();
         boolean retour = false;
         
-        if (ClientDAO.estPresentClient(client).isEmpty()) {
+        try {
+            if (ClientDAO.estPresentClient(client.getCourriel())== null) {
 
-            JpaUtil.ouvrirTransaction();
+                JpaUtil.ouvrirTransaction();
+
+                try {
+                    AstroTest astroTest = new AstroTest();
+                    List<String> profil = astroTest.getProfil(client.getPrenom(), client.getDateNaissance());
+                    client.setSigneZodiaque(profil.get(0));
+                    client.setSigneChinois(profil.get(1));
+                    client.setCouleurPB(profil.get(2));
+                    client.setAnimalTotem(profil.get(3));
+
+                } catch (IOException ex) {
+                    Logger.getLogger(Service.class.getName()).log(Level.SEVERE, null, ex);
+                    JpaUtil.fermerEntityManager();
+                }
+
+                    ClientDAO.ajouterClient(client);
+                    JpaUtil.validerTransaction();
+                    retour = true;
+            }
             
-            try {
-                AstroTest astroTest = new AstroTest();
-                List<String> profil = astroTest.getProfil(client.getPrenom(), client.getDateNaissance());
-                client.setSigneZodiaque(profil.get(0));
-                client.setSigneChinois(profil.get(1));
-                client.setCouleurPB(profil.get(2));
-                client.setAnimalTotem(profil.get(3));
-                
-            } catch (IOException ex) {
-                Logger.getLogger(Service.class.getName()).log(Level.SEVERE, null, ex);
-                JpaUtil.fermerEntityManager();
-            }
-
-            try {
-                ClientDAO.ajouterClient(client);
-                JpaUtil.validerTransaction();
-                JpaUtil.fermerEntityManager();
-                retour = true;
-                
-            } catch (RollbackException ex) {
-                JpaUtil.fermerEntityManager();
-                return retour;
-            }
-
+        }  catch (RollbackException ex) {
+            JpaUtil.annulerTransaction();
+        } finally {
+            JpaUtil.fermerEntityManager();
         }
-        return retour;
-    }
-
-    public static String connexionUtilisateur(String courriel, String motDePasse) {
-        String retour = "Aucun";
-        JpaUtil.creerEntityManager();
-        if (ClientDAO.rechercherClient(courriel, motDePasse).isEmpty()) {
-            if (EmployeDAO.rechercherEmploye(courriel, motDePasse).isEmpty()) {
-            } else {
-                retour = "Employe";
-            }
+        
+        if(retour) {
+            Message.envoyerMail(
+                "contact@posit.if",
+                client.getCourriel(),
+                "Validation de l'inscription",
+                "Félicitations, vous êtes inscrit sur Posit'if ! Vous pouvez dès à présent vous connecter sur la plateforme");
         } else {
-           retour = "Client";
+            Message.envoyerMail(
+                "contact@posit.if",
+                client.getCourriel(),
+                "Erreur lors de l'inscription",
+                "Désolé, votre inscription sur la plateforme posit'if a échoué, veuillez réessayer ultérieurement");
         }
-        JpaUtil.fermerEntityManager();
+        
+        return retour;
+    }
+
+    /*
+    ** Rôle : Savoir si c'est un client qui veut se connecter
+    **        et dans ce cas le connecter
+    ** Entrée : Le courriel et le mot de passe
+    ** Sortie : Le client (s'il est trouvé) ou null
+    */
+    public static Client connexionClient(String courriel, String motDePasse) {
+        
+        Client retour = null;
+        Client clientRecupere = null;
+        JpaUtil.creerEntityManager();
+        try {
+            clientRecupere = ClientDAO.estPresentClient(courriel);
+            if (clientRecupere!=null) {
+                if(motDePasse.equals(clientRecupere.getMdp())) {
+                    retour = clientRecupere;
+                } 
+            } 
+        } catch(Exception e) {
+            DebugLogger.log("Erreur connexionClient",e);
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+        
         return retour;
     }
     
-    public static Client chercheClientConnecte (String courriel, String motDePasse) {
+    /*
+    ** Rôle : Savoir si c'est un employé qui veut se connecter
+    **        et dans ce cas le connecter
+    ** Entrée : Le courriel et le mot de passe
+    ** Sortie : L'employé (s'il est trouvé) ou null
+    */
+    public static Employe connexionEmploye(String courriel, String motDePasse) {
+        
+        Employe retour = null;
+        Employe employeRecupere = null;
+                
         JpaUtil.creerEntityManager();
-        Client c = ClientDAO.rechercherClient(courriel, motDePasse).get(0);
-        JpaUtil.fermerEntityManager();
-        return c;
-    }
-
-    public static Employe chercheEmployeConnecte (String courriel, String motDePasse) {
-        JpaUtil.creerEntityManager();
-        Employe e = EmployeDAO.rechercherEmploye(courriel, motDePasse).get(0);
-        JpaUtil.fermerEntityManager();
-        return e;
+        try {
+            employeRecupere = EmployeDAO.estPresentEmploye(courriel);
+            if (employeRecupere!=null) {
+                if(motDePasse.equals(employeRecupere.getMdp())) {
+                    retour = employeRecupere;
+                }
+            } 
+        } catch (Exception e) {
+            DebugLogger.log("Erreur connexionEmploye",e);
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+        
+        return retour;
     }
     
-    public static List<Medium> trouverMedium (Client client,Employe employe) {
+    /*
+    ** Rôle : Trouver le médium incarné par un employé
+    **        pour une voyance 'Non débutée' ou 'Débutée'
+    ** Entrée : Le client et l'employé d'une même voyance
+    ** Sortie : Le médium (s'il est trouvé) ou null
+    */
+    public static Medium trouverMediumIncarneParLemploye (Client client,Employe employe) {
+        
         JpaUtil.creerEntityManager();
-        List<Medium> mediums = MediumDAO.rechercherMedium(client, employe);
-        JpaUtil.fermerEntityManager();
+        Medium mediums = null;
+        
+        try {
+            mediums = MediumDAO.trouverMediumIncarneParLemploye(client, employe);
+        } catch (NoResultException e) {
+            DebugLogger.log("Erreur trouverMedium",e);
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+        
         return mediums;
     }
     
-    public static List<Voyance> accepterVoyance(Employe employe, Client client) {
+    /*
+    ** Rôle : Permet à un employé d'accepter la voyance
+    ** Entrée : L'employé et le client
+    ** Sortie : La voyance (si elle est trouvée) ou null
+    */
+    public static Voyance accepterVoyance(Employe employe, Client client) {
+        
         JpaUtil.creerEntityManager();
-        List<Voyance> voyances = VoyanceDAO.rechercherVoyance(client, employe);
-        Voyance voyanceTraitee = voyances.get(0);
-        voyanceTraitee.setEtat("Débutée");
+        Voyance voyance = null;
         
-        JpaUtil.ouvrirTransaction();
-        
-        VoyanceDAO.creerVoyance(voyanceTraitee);
-        
-        JpaUtil.validerTransaction();
-        JpaUtil.fermerEntityManager();
-        
-        return voyances;
+        try {
+            voyance = VoyanceDAO.rechercherVoyanceDunClientPourUnEmploye(client, employe);
+            voyance.setEtat("Débutée");
+
+            JpaUtil.ouvrirTransaction();
+            VoyanceDAO.majVoyance(voyance);
+            JpaUtil.validerTransaction();
+            
+        } catch (RollbackException ex) {
+            JpaUtil.annulerTransaction();
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+
+        return voyance;
     }
     
-    public static List<String> generePhrases(String couleur, String animal, String amour, String sante, String travail) throws IOException {
+    public static Voyance chercherVoyance (Employe employe, Client client) {
+        
+        JpaUtil.creerEntityManager();
+        Voyance voyance = null;
+        
+        try {
+            voyance = VoyanceDAO.rechercherVoyanceDunClientPourUnEmploye(client, employe);
+        } catch (RollbackException ex) {
+            JpaUtil.annulerTransaction();
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+
+        return voyance;
+    }
+    
+    /*
+    ** Rôle : Générer des phrases de vooyance 
+    **        en fonction de paramètres
+    ** Entrée : La couleur porte-bonheur, l'animal-totem, les indices
+    **          d'amour, de santé et de travail indiqués
+    ** Sortie : Les prases générées
+    */
+    public static List<String> generePhrases(String couleur, String animal, int amour, int sante, int travail) {
+      
         AstroTest astroTest = new AstroTest();
-        return astroTest.getPredictions(couleur, animal, Integer.parseInt(amour), Integer.parseInt(sante), Integer.parseInt(travail));
+        List<String> phrases = null;
+        try {
+            phrases = astroTest.getPredictions(couleur, animal, amour, sante, travail);
+        } catch (IOException | NumberFormatException e) {
+            DebugLogger.log("Erreur generePhrases",e);
+        }
+        
+        return phrases;
     }
     
+    /*
+    ** Rôle : Permet à un employé de terminer la voyance
+    **        commencée
+    ** Entrée : La voyance, le commentaire, l'heure de fin et l'employé
+    **          faisant la voyance
+    ** Sortie : aucune
+    */
     public static void terminerVoyance (Voyance voyance, String commentaire, String heureFin, Employe employe) {
         
         JpaUtil.creerEntityManager();
         JpaUtil.ouvrirTransaction();
-        
-        voyance.setHeureFin(heureFin);
-        voyance.setCommentaire(commentaire);
-        voyance.setEtat("Terminée");
-        employe.setEtat("Disponible");
-        
-        VoyanceDAO.majVoyance(voyance);
-        EmployeDAO.majEmploye(employe);
-        
-        JpaUtil.validerTransaction();
-        JpaUtil.fermerEntityManager();
+        try {
+            voyance.setHeureFin(heureFin);
+            voyance.setCommentaire(commentaire);
+            voyance.setEtat("Terminée");
+            employe.setEtat("Disponible");
+
+            VoyanceDAO.majVoyance(voyance);
+            EmployeDAO.majEmploye(employe);
+
+            JpaUtil.validerTransaction();
+        } catch (RollbackException e) {
+            JpaUtil.annulerTransaction();
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+       
         
     }
     
-    public static String afficherProfilClient (Client client) {
-        String profil = "Signe du zodiaque : ";
-        profil += client.getSigneZodiaque();
-        profil += "\n";
-        profil += "Signe chinois : ";
-        profil += client.getSigneChinois();
-        profil += "\n";
-        profil += "Couleur porte-bonheur : ";
-        profil += client.getCouleurPB();
-        profil += "\n";
-        profil += "Animal totem : ";
-        profil += client.getAnimalTotem();
+    /*
+    ** Rôle : Afficher le profil d'un client ->
+    **        nom, prénom, données de voyances, ...
+    ** Entrée : Le client
+    ** Sortie : Le profil généré
+    */
+    public static List<String> afficherProfilClient (Client client) {
+        
+        List<String> profil = new ArrayList();
+        profil.add(client.getNom());
+        profil.add(client.getPrenom());
+        profil.add(client.getSigneZodiaque());
+        profil.add(client.getSigneChinois());
+        profil.add(client.getCouleurPB());
+        profil.add(client.getAnimalTotem());
         return profil;
     }
     
-    public static String afficherHistoriqueClient (Client client) {
-        String historique = "Historique du client  : \n";
-        //On recupere sa liste des voyances 
-        //List<voyance> voyance = VoyanceDAO.rechercheVoyanceClient(client);
-        return historique;
+    /*
+    ** Rôle : Afficher l'historique d'un client ->
+    **        les médiums, les dates de début/fin, ...
+    ** Entrée : Le client
+    ** Sortie : L'historique généré
+    */
+    public static List<Voyance> afficherHistoriqueClient (Client client) {
+
+        JpaUtil.creerEntityManager();
+        List<Voyance> voyance = null;
+        try {
+            voyance = VoyanceDAO.rechercheVoyancesFaitesClient(client);
+        } catch (Exception e) {
+            DebugLogger.log("Erreur afficherHistoriqueClient",e);
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+
+        return voyance;
     }
     
+    /*
+    ** Rôle : Création de voyance lors d'une demande 
+    **        par un client
+    ** Entrée : Le client, l'identifiant du médium souhaité
+    ** Sortie : aucune
+    */
+    public static void creerVoyance(Client client, int mediumSouhaite) {
+        
+        Medium medium = Service.choisirMedium(mediumSouhaite);
+        List<Employe> employesDispos = Service.rechercheEmployePourMedium(mediumSouhaite);
+        try {
+            if(employesDispos.isEmpty()) {
+
+                Message.envoyerNotification(client.getTelephone()," Le médium choisi n'est pas disponible");
+
+            } else {
+                Voyance voyance = Service.validerVoyance(client,medium,employesDispos.get(0));
+                Message.envoyerNotification(employesDispos.get(0).getTelephone()," Voyance demandée le " + voyance.getDateDebut() +
+                            " pour " + client.getPrenom() + " " + client.getNom() +
+                            "(#" + client.getId() + "). Médium à incarner : " + medium.getNom());
+
+            }
+            
+        }  catch (Exception e) {
+                DebugLogger.log("Erreur creerVoyance",e);
+        }
+    }
+    
+    /*
+    ** Rôle : Démarrer une voyance, demande faite 
+    **        par un employé
+    ** Entrée : Le client et l'employé
+    ** Sortie : La voyance démarrée
+    */
+    public static Voyance demarrerVoyance(Employe employe) {
+        
+        Voyance voyance = null;
+        
+        try {
+            Client client = Service.rechercherClientPourUnEmploye(employe);
+            if(client !=null){
+                voyance = Service.accepterVoyance(employe,client);
+                Medium medium = Service.trouverMediumIncarneParLemploye(client,employe);
+                Message.envoyerNotification(client.getTelephone(),
+                        "Votre demande de voyance du "+ voyance.getDateDebut()+ " a bien été enregistrée."
+                            + "Vous pouvez dès à présent me contacter au " + employe.getTelephone() +
+                            ". A tout de suite ! Posit'ifement vôtre, " + medium.getNom());
+
+            } 
+        } catch (Exception e) {
+                DebugLogger.log("Erreur demarrerVoyance",e);
+        }
+        
+        return voyance;
+    }
+    
+    /*
+    ** Rôle : Trouver la voyance (s'il elle existe)
+    **        que doit faire un employé
+    ** Entrée : L'employé considéré
+    ** Sortie : La voyance trouvée
+    */
+    public static Voyance trouverVoyanceAFaireDunEmploye (Employe employe) {
+        
+        Voyance voyance = null;
+        
+        try {
+            Client client = Service.rechercherClientPourUnEmploye(employe);
+            if(client !=null){
+                voyance = Service.chercherVoyance(employe,client);
+            } 
+        } catch (Exception e) {
+                DebugLogger.log("Erreur demarrerVoyance",e);
+        }
+        
+        return voyance;
+    }
+    
+    /*
+    ** Rôle : Statistique du nombre de voyances
+    **        pour chaque médium
+    ** Entrée : aucun
+    ** Sortie : Les statistiques trouvées
+    */
+    public static List<Object[]> statsNbVoyancesParMedium () {
+        
+        JpaUtil.creerEntityManager();
+        List<Object[]> resultat = null;
+        
+        try {
+            resultat = VoyanceDAO.statsNbVoyancesParMedium();
+        } catch (Exception e) {
+            DebugLogger.log("Erreur statsNbVoyancesMedium",e);
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+        return resultat;
+    }
+    
+    /*
+    ** Rôle : Statistique du nombre de clients différents
+    **        pour chaque employé
+    ** Entrée : aucun
+    ** Sortie : Les statistiques trouvées
+    */
+    public static List<Object[]> statsNbClientsDistinctsEmploye () {
+        
+        JpaUtil.creerEntityManager();
+        List<Object[]> resultat = null;
+        
+        try {
+            resultat = VoyanceDAO.statsNbClientsDistinctsEmploye();
+        } catch (Exception e) {
+            DebugLogger.log("Erreur statsNbClientsEmploye",e);
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+
+        return resultat;
+    }
+    
+    /*
+    ** Rôle : Statistique du nombre de clients différents
+    **        pour chaque employé
+    ** Entrée : aucun
+    ** Sortie : Les statistiques trouvées
+    */
+    public static List<Object[]> statsNbClientsTotalEmploye () {
+        
+        JpaUtil.creerEntityManager();
+        List<Object[]> resultat = null;
+        
+        try {
+            resultat = VoyanceDAO.statsNbClientsTotalEmploye();
+        } catch (Exception e) {
+            DebugLogger.log("Erreur statsNbClientsTotalEmploye",e);
+        } finally {
+            JpaUtil.fermerEntityManager();
+        }
+
+        return resultat;
+    }
 }

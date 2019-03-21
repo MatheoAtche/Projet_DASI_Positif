@@ -4,6 +4,7 @@ import dao.JpaUtil;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -11,10 +12,7 @@ import metier.modele.Client;
 import metier.modele.Employe;
 import metier.modele.Medium;
 import metier.modele.Voyance;
-import metier.modele.Voyant;
 import metier.service.Service;
-import util.AstroTest;
-import util.Message;
 import util.Saisie;
 
 /*
@@ -35,16 +33,19 @@ public class TestApplication {
     public static void main(String[] args) throws ParseException, IOException {
 
         JpaUtil.init();
-        Service.initialiserApplication();
+        //Service.initialiserApplication();
        
         clientConnecte = new Client();
         employeConnecte = new Employe();
+        profilConnecte = "Aucun";
 
         /**
          * ******* On teste le client *********
          */
+        
         //Inscription
         /*
+        System.out.println("*********** Inscription client ***********");
         String civiliteInscription = Saisie.lireChaine("Entrez votre civilité : ");
         String nomInscription = Saisie.lireChaine("Entrez votre nom : ");
         String prenomInscription = Saisie.lireChaine("Entrez votre prénom : ");
@@ -52,61 +53,68 @@ public class TestApplication {
         String mdpInscription = Saisie.lireChaine("Entrez votre mot de passe : ");
         String adresseInscription = Saisie.lireChaine("Entrez votre adresse : ");
         String telInscription = Saisie.lireChaine("Entrez votre téléphone : ");
-        String dateInscription = Saisie.lireChaine("Entrez votre date de naissance au format YYYY-MM-JJ : ");
+        int anneeInscription = Saisie.lireInteger("Entrez votre année de naissance au format YYYY : ");
+        int moisInscription = Saisie.lireInteger("Entrez votre mois de naissance au format MM : ");
+        int jourInscription = Saisie.lireInteger("Entrez votre jour de naissance au format JJ : ");
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         String dateString = format.format(new Date());
-        Date date = format.parse(dateInscription); // au format "1988-11-05"
+        Date date = format.parse(Integer.toString(anneeInscription)+"-"
+                                    +Integer.toString(moisInscription)+"-"
+                                    +Integer.toString(jourInscription)); 
         Client clientInscription = new Client(prenomInscription,nomInscription,mdpInscription,
                                                 civiliteInscription,date,adresseInscription,telInscription,
                                                 courrielInscription);
         
-        if(Service.inscrireClient(clientInscription)) {
-            Message.envoyerMail(
-                "contact@posit.if",
-                clientInscription.getCourriel(),
-                "Validation de l'inscription",
-                "Félicitations, vous êtes inscrit sur Posit'if ! Vous pouvez dès à présent vous connecter sur la plateforme");
+        Service.inscrireClient(clientInscription);
+        */
+         
+        
+        //Connexion client
+        /*
+        System.out.println("*********** Connection client ***********");
+        String courrielConnexion = Saisie.lireChaine("Courriel : ");
+        String mdpConnexion = Saisie.lireChaine("Mot de passe : ");
+        
+        clientConnecte = Service.connexionClient(courrielConnexion,mdpConnexion);
+        employeConnecte = Service.connexionEmploye(courrielConnexion,mdpConnexion);
+        if (clientConnecte != null) {
+            profilConnecte = "Client";
+        } else if ( employeConnecte != null) {
+            profilConnecte = "Employe";
         } else {
-            Message.envoyerMail(
-                "contact@posit.if",
-                clientInscription.getCourriel(),
-                "Erreur lors de l'inscription",
-                "Désolé, votre inscription sur la plateforme posit'if a échoué, veuillez réessayer ultérieurement");
+            System.out.println("Login inconnu");
         }
-         */
-        
-        //Connexion
-        
-        String courrielConnexion = Saisie.lireChaine("Entrez votre courriel : ");
-        String mdpConnexion = Saisie.lireChaine("Entrez votre mot de passe : ");
-        profilConnecte = Service.connexionUtilisateur(courrielConnexion, mdpConnexion);
-        if (profilConnecte.equals("Aucun")) {
-            System.out.println("Login ou mot de passe incorrects.");
-        } else if (profilConnecte.equals("Client")) {
-            clientConnecte = Service.chercheClientConnecte(courrielConnexion, mdpConnexion);
-        } else {
-            employeConnecte = Service.chercheEmployeConnecte(courrielConnexion, mdpConnexion);
-        }
-        
-        
+        */
         
         //Affichage du profil
-        /*
-        if(profilConnecte.equals("Client")) {
-            System.out.println(Service.afficherProfilClient(clientConnecte));
-        }
-        */
         
-         //Affichage de l'historique
-        /*
+        System.out.println("*********** Affichage du profil client ***********");
         if(profilConnecte.equals("Client")) {
-            System.out.println(Service.afficherHistoriqueClient(clientConnecte));
+            List<String> profilClient = Service.afficherProfilClient(clientConnecte);
+            Iterator<String> iter = profilClient.iterator(); 
+            while (iter.hasNext()) { 
+                System.out.println(iter.next());
+            }
         }
-        */
+        
+       
+        //Affichage de l'historique
+        
+        System.out.println("*********** Affichage de l'historique client ***********");
+        if(profilConnecte.equals("Client")) {
+            List<Voyance> historiqueClient = Service.afficherHistoriqueClient(clientConnecte);
+            Iterator<Voyance> iter3 = historiqueClient.iterator(); 
+            while (iter3.hasNext()) { 
+                Voyance v = iter3.next();
+                System.out.println(v.getDateDebut()+ " " + v.getHeureFin() + " " + v.getMedium().getNom()+ " " + v.getCommentaire() );
+            }
+        }
+        
         
         //Affichage des médiums et en choisir un
         
-        if(profilConnecte.equals("Client")) {
+        System.out.println("*********** Choix du médium ***********");
+        if(profilConnecte.equals("Client")) {    
             
             List<Medium> mediumsVoyant = Service.afficherMediums();
             Iterator<Medium> iter = mediumsVoyant.iterator(); 
@@ -114,97 +122,130 @@ public class TestApplication {
                 System.out.println( iter.next());
             }
             
-            String mediumSouhaite = Saisie.lireChaine("Indiquez l'ID du méduim souhaité : ");
-            List<Medium> medium = Service.choisirMedium(mediumSouhaite);
-            List<Employe> employesDispos = Service.rechercheEmployePourMedium(clientConnecte,mediumSouhaite);
-            
-            if(employesDispos.isEmpty()) {
-                System.out.println("Le médium souhaité ne peut pas travailler aujourd'hui. Veuillez réessayer ultérieurement.");
-            } else {
-                Voyance voyance = Service.validerVoyance(clientConnecte,medium.get(0),employesDispos.get(0));
-                Message.envoyerNotification(employesDispos.get(0).getTelephone(),
-                        "Pour : " + employesDispos.get(0).getPrenom() + " " + employesDispos.get(0).getNom() + "\n" +
-                        "Tel : " + employesDispos.get(0).getTelephone() + "\n" +
-                        "Message : Voyance demandée le " + voyance.getDateDebut() +
-                            " pour " + clientConnecte.getPrenom() + " " + clientConnecte.getNom() +
-                            "(#" + clientConnecte.getId() + "). Médium à incarner : " + medium.get(0).getNom());
-            }
-            
+            int mediumSouhaite = Saisie.lireInteger("Indiquez l'ID  du médium souhaité : ");
+            Service.creerVoyance(clientConnecte,mediumSouhaite);
+      
         }
         
-        //Réception d'une notifiction client -- INUTILE
-        /*
-        if(profilConnecte.equals("Client")) {
-            List<Employe> employe = Service.recevoirNotification(clientConnecte);
-            if(!employe.isEmpty()){
-                List<Medium> medium = Service.trouverMedium(clientConnecte,employe.get(0));
-                Message.envoyerNotification(clientConnecte.getTelephone(),
-                        "Pour : " + clientConnecte.getPrenom() + " " + clientConnecte.getNom() + "\n" +
-                        "Tel : " + clientConnecte.getTelephone() + "\n" +
-                        "Message : Votre demande de voyance du a bien été enregistrée."
-                            + "Vous pouvez dès à présent me contacter au " + employe.get(0).getTelephone() +
-                            ". A tout de suite ! Posit'ifement vôtre, " + medium.get(0).getNom());
-            } 
-        }
-        */
         
         /**
          * ******* On teste l'employé *********
          */
+        
          //Connexion
         
-        String courrielConnexion2 = Saisie.lireChaine("Entrez votre courriel : ");
-        String mdpConnexion2 = Saisie.lireChaine("Entrez votre mot de passe : ");
-        profilConnecte = Service.connexionUtilisateur(courrielConnexion2, mdpConnexion2);
-        if (profilConnecte.equals("Aucun")) {
-            System.out.println("Login ou mot de passe incorrects.");
-        } else if (profilConnecte.equals("Client")) {
-            clientConnecte = Service.chercheClientConnecte(courrielConnexion2, mdpConnexion2);
+        System.out.println("*********** Connection employé ***********");
+        String courrielConnexion2 = Saisie.lireChaine("Courriel : ");
+        String mdpConnexion2 = Saisie.lireChaine("Mot de passe : ");
+        
+        clientConnecte = Service.connexionClient(courrielConnexion2,mdpConnexion2);
+        employeConnecte = Service.connexionEmploye(courrielConnexion2,mdpConnexion2);
+        if (clientConnecte != null) {
+            profilConnecte = "Client";
+        } else if ( employeConnecte != null) {
+            profilConnecte = "Employe";
         } else {
-            employeConnecte = Service.chercheEmployeConnecte(courrielConnexion2, mdpConnexion2);
+            System.out.println("Login inconnu");
         }
         
-        
+       
         //Acceptation d'une notification + Générateur de phrases + terminer la voyance
         // + Consultation du profil client
+        
         if(profilConnecte.equals("Employe")) {
-            List<Client> client = Service.rechercherVoyance(employeConnecte);
-            if(!client.isEmpty()){
-                //Acceptation d'une notification
-                List<Voyance> voyances = Service.accepterVoyance(employeConnecte,client.get(0));
-                List<Medium> medium = Service.trouverMedium(client.get(0),employeConnecte);
-                Message.envoyerNotification(client.get(0).getTelephone(),
-                        "Pour : " + client.get(0).getPrenom() + " " + client.get(0).getNom() + "\n" +
-                        "Tel : " + client.get(0).getTelephone() + "\n" +
-                        "Message : Votre demande de voyance du "+ voyances.get(0).getDateDebut()+ " a bien été enregistrée."
-                            + "Vous pouvez dès à présent me contacter au " + employeConnecte.getTelephone() +
-                            ". A tout de suite ! Posit'ifement vôtre, " + medium.get(0).getNom());
-                
-                
+            
+            System.out.println("*********** Rechercher une voyance ***********");
+            Voyance voyanceAFaire = Service.trouverVoyanceAFaireDunEmploye(employeConnecte);
+            
+            
+            if(voyanceAFaire != null) {
+ 
                 //Profil client
-                System.out.println(Service.afficherProfilClient(client.get(0)));
                 
-                //Générateur
-                String amour = Saisie.lireChaine("Amour : ");
-                String sante = Saisie.lireChaine("Santé : ");
-                String travail = Saisie.lireChaine("Travail : ");
-                
-                List<String> phraseGenerees = Service.generePhrases(client.get(0).getCouleurPB(),client.get(0).getAnimalTotem(),amour,sante,travail);
-                Iterator<String> iter = phraseGenerees.iterator(); 
+                System.out.println("*********** Afficher profil client ***********");
+                List<String> profilClient = Service.afficherProfilClient(voyanceAFaire.getClient());
+                Iterator<String> iter = profilClient.iterator(); 
                 while (iter.hasNext()) { 
-                    System.out.println( iter.next());
+                    System.out.println(iter.next());
                 }
                 
+           
+                //Historique client
+                
+                System.out.println("*********** Afficher historique client ***********");
+                List<Voyance> historiqueClient = Service.afficherHistoriqueClient(voyanceAFaire.getClient());
+                Iterator<Voyance> iter3 = historiqueClient.iterator(); 
+                while (iter3.hasNext()) { 
+                    Voyance v = iter3.next();
+                    System.out.println(v.getDateDebut()+ " " + v.getHeureFin() + " " + v.getMedium().getNom()+ " " + v.getCommentaire() );
+                }
+                
+                
+                //On accepte la demande de voyance
+                System.out.println("*********** Démarrer la voyance ***********");
+                voyanceAFaire = Service.demarrerVoyance(employeConnecte);
+            
+                //Générateur
+                
+                System.out.println("*********** Générer phrases ***********");
+                int amour = Saisie.lireInteger("Amour : ",Arrays.asList(1,2,3,4));
+                int sante = Saisie.lireInteger("Santé : ",Arrays.asList(1,2,3,4));
+                int travail = Saisie.lireInteger("Travail : ",Arrays.asList(1,2,3,4));
+
+                List<String> phraseGenerees = Service.generePhrases(voyanceAFaire.getClient().getCouleurPB(),voyanceAFaire.getClient().getAnimalTotem(),amour,sante,travail);
+                Iterator<String> iter2 = phraseGenerees.iterator(); 
+                while (iter2.hasNext()) { 
+                    System.out.println( iter2.next());
+                }
+                
+                
+                
                 //Terminer la voyance
+                
+                System.out.println("*********** Terminer voyance ***********");
                 String commentaire = Saisie.lireChaine("Indiquez votre commentaire : ");
                 String heureFin = Saisie.lireChaine("Indiquez l'heure de fin : ");
-                Service.terminerVoyance(voyances.get(0),commentaire,heureFin,employeConnecte);
+                Service.terminerVoyance(voyanceAFaire,commentaire,heureFin,employeConnecte);
                 
-            } 
+
+            }
+              
+            
+            //Afficher les statistiques
+            
+            System.out.println("*********** Afficher statistiques ***********");
+            List<Object[]> resultats = Service.statsNbVoyancesParMedium();
+            for (int i=0; i<resultats.size(); i++) {
+                Object[] arr= resultats.get(i);
+                for (Object arr1 : arr) {
+                    System.out.print(arr1 + " ");
+                }
+                System.out.println("");
+            }  
+            
+            List<Object[]> res = Service.statsNbClientsDistinctsEmploye();
+            for (int i=0; i<res.size(); i++) {
+                Object[] r= res.get(i);
+                for (Object r1 : r) {
+                    System.out.print(r1 + " ");
+                }
+                System.out.println("");
+            }
+            
+            List<Object[]> res2 = Service.statsNbClientsTotalEmploye();
+            for (int i=0; i<res2.size(); i++) {
+                Object[] r= res2.get(i);
+                for (Object r1 : r) {
+                    System.out.print(r1 + " ");
+                }
+                System.out.println("");
+            }
+            
+            
         }
         
         JpaUtil.destroy();
 
     }
-
+    
 }

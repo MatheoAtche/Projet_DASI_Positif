@@ -66,6 +66,10 @@ public class Client implements Serializable {
         return idClient;
     }
 
+    public String getMdp() {
+        return mdp;
+    }
+
     public String getPrenom() {
         return prenom;
     }
