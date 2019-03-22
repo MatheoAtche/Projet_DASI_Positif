@@ -145,7 +145,6 @@ public class Service {
             EmployeDAO.ajouterEmploye(e5);
             
             JpaUtil.validerTransaction();
-            JpaUtil.fermerEntityManager();
             
              
         } catch (RollbackException ex) {
