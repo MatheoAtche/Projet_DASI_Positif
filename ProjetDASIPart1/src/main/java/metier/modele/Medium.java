@@ -14,7 +14,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
-import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 
 /**
@@ -32,9 +31,7 @@ public class Medium implements Serializable {
     private String descriptif;
     @OneToMany(mappedBy="medium")
     private List<Voyance> voyances;
-    @ManyToMany
-    private List<Employe> employes;
-
+    
     public Medium() {
     }
 
@@ -42,14 +39,10 @@ public class Medium implements Serializable {
         this.nom = nom;
         this.descriptif = descriptif;
         this.voyances = new ArrayList<>();
-        this.employes = new ArrayList<>();
     }
 
     public void ajouteNouvelleVoyance(Voyance voyance) {
         voyances.add(voyance);
-    }
-    public void ajouteEmploye (Employe e) {
-        employes.add(e);
     }
     
     public Long getId() {

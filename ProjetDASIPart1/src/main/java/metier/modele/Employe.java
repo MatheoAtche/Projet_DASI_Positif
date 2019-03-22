@@ -35,7 +35,7 @@ public class Employe implements Serializable {
     private String etat;
     @OneToMany(mappedBy="employe")
     private List<Voyance> voyances;
-    @ManyToMany(mappedBy="employes")
+    @ManyToMany
     private List<Medium> mediums;
 
     public Employe() {

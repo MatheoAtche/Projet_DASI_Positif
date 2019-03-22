@@ -94,38 +94,23 @@ public class Service {
         e1.ajouteMediumsIncarnes(m1);
         e1.ajouteMediumsIncarnes(m2);
         e1.ajouteMediumsIncarnes(m3);
-        m1.ajouteEmploye(e1);
-        m2.ajouteEmploye(e1);
-        m3.ajouteEmploye(e1);
-        
+     
         e2.ajouteMediumsIncarnes(m1);
         e2.ajouteMediumsIncarnes(m2);
         e2.ajouteMediumsIncarnes(m3);
-        m1.ajouteEmploye(e2);
-        m2.ajouteEmploye(e2);
-        m3.ajouteEmploye(e2);
-        
+       
         e3.ajouteMediumsIncarnes(m4);
         e3.ajouteMediumsIncarnes(m5);
         e3.ajouteMediumsIncarnes(m6);
-        m4.ajouteEmploye(e3);
-        m5.ajouteEmploye(e3);
-        m6.ajouteEmploye(e3);
-        
+      
         e4.ajouteMediumsIncarnes(m4);
         e4.ajouteMediumsIncarnes(m5);
         e4.ajouteMediumsIncarnes(m6);
-        m4.ajouteEmploye(e4);
-        m5.ajouteEmploye(e4);
-        m6.ajouteEmploye(e4);
-        
+       
         e5.ajouteMediumsIncarnes(m4);
         e5.ajouteMediumsIncarnes(m5);
         e5.ajouteMediumsIncarnes(m6);
-        m4.ajouteEmploye(e5);
-        m5.ajouteEmploye(e5);
-        m6.ajouteEmploye(e5);
-        
+       
         try {
             
             JpaUtil.creerEntityManager();

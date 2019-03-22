@@ -33,7 +33,7 @@ public class TestApplication {
     public static void main(String[] args) throws ParseException, IOException {
 
         JpaUtil.init();
-        Service.initialiserApplication();
+        //Service.initialiserApplication();
        
         clientConnecte = new Client();
         employeConnecte = new Employe();
@@ -67,8 +67,7 @@ public class TestApplication {
         
         Service.inscrireClient(clientInscription);
         */
-         
-        
+                 
         //Connexion client
         
         System.out.println("*********** Connection client ***********");
@@ -82,7 +81,7 @@ public class TestApplication {
         } else if ( employeConnecte != null) {
             profilConnecte = "Employe";
         } else {
-            System.out.println("Login inconnu");
+            System.out.println("Identifiants inconnus");
         }
         
         
@@ -132,7 +131,7 @@ public class TestApplication {
          * ******* On teste l'employé *********
          */
         
-         //Connexion
+        //Connexion
         
         System.out.println("*********** Connection employé ***********");
         String courrielConnexion2 = Saisie.lireChaine("Courriel : ");
@@ -145,7 +144,7 @@ public class TestApplication {
         } else if ( employeConnecte != null) {
             profilConnecte = "Employe";
         } else {
-            System.out.println("Login inconnu");
+            System.out.println("Identfiants inconnus");
         }
         
        
