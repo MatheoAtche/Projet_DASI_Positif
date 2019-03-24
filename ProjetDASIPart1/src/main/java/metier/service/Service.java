@@ -6,6 +6,7 @@ import dao.JpaUtil;
 import dao.MediumDAO;
 import dao.VoyanceDAO;
 import java.io.IOException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -499,6 +500,12 @@ public class Service {
         List<String> profil = new ArrayList();
         profil.add(client.getNom());
         profil.add(client.getPrenom());
+        profil.add(client.getCourriel());
+        profil.add(client.getTelephone());
+        String pattern = "MM/dd/yyyy";
+        DateFormat df = new SimpleDateFormat(pattern);
+        profil.add(df.format(client.getDateNaissance()));
+        profil.add(client.getAdresse());
         profil.add(client.getSigneZodiaque());
         profil.add(client.getSigneChinois());
         profil.add(client.getCouleurPB());
@@ -670,6 +677,11 @@ public class Service {
         return resultat;
     }
     
+    /*
+    ** Rôle : Déconnecter l'utilisateur
+    ** Entrée : Aucune
+    ** Sortie : Une chaine de caractère indiquant qu'aucun profil n'est connecté
+    */
     public static String deconnecterUtilisateur () {
         return "Aucun";
     }
