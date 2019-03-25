@@ -21,6 +21,7 @@ import javax.persistence.TemporalType;
  */
 @Entity
 public class Voyance implements Serializable {
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -35,7 +36,7 @@ public class Voyance implements Serializable {
     private Medium medium;
     @ManyToOne
     private Employe employe;
-   
+
     public Voyance() {
     }
 
@@ -111,5 +112,5 @@ public class Voyance implements Serializable {
     public void setEmploye(Employe employe) {
         this.employe = employe;
     }
-    
+
 }

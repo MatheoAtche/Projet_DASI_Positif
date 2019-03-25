@@ -31,8 +31,8 @@ public class TestApplication {
     private static Client clientConnecte;
     private static Employe employeConnecte;
     private static String profilConnecte;
-    
-    public static void Inscription (){
+
+    public static void Inscription() {
         System.out.println("*********** Inscription client ***********");
         String civiliteInscription = Saisie.lireChaine("Entrez votre civilité : ");
         String nomInscription = Saisie.lireChaine("Entrez votre nom : ");
@@ -47,134 +47,134 @@ public class TestApplication {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         Date date;
         try {
-            date = format.parse(Integer.toString(anneeInscription)+"-" 
-                    +Integer.toString(moisInscription)+"-"
-                    +Integer.toString(jourInscription));
-            Client clientInscription = new Client(prenomInscription,nomInscription,mdpInscription,
-                                                civiliteInscription,date,adresseInscription,telInscription,
-                                                courrielInscription);
+            date = format.parse(Integer.toString(anneeInscription) + "-"
+                    + Integer.toString(moisInscription) + "-"
+                    + Integer.toString(jourInscription));
+            Client clientInscription = new Client(prenomInscription, nomInscription, mdpInscription,
+                    civiliteInscription, date, adresseInscription, telInscription,
+                    courrielInscription);
             Service.inscrireClient(clientInscription);
         } catch (ParseException ex) {
             Logger.getLogger(TestApplication.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public static void Connexion(){
+
+    public static void Connexion() {
         System.out.println("*********** Connexion ***********");
         String courrielConnexion = Saisie.lireChaine("Courriel : ");
         String mdpConnexion = Saisie.lireChaine("Mot de passe : ");
-        clientConnecte = Service.connexionClient(courrielConnexion,mdpConnexion);
-        employeConnecte = Service.connexionEmploye(courrielConnexion,mdpConnexion);
+        clientConnecte = Service.connexionClient(courrielConnexion, mdpConnexion);
+        employeConnecte = Service.connexionEmploye(courrielConnexion, mdpConnexion);
         if (clientConnecte != null) {
             profilConnecte = "Client";
-        } else if ( employeConnecte != null) {
+        } else if (employeConnecte != null) {
             profilConnecte = "Employe";
         } else {
             System.out.println("Identifiants inconnus");
         }
     }
-    
-    public static void Deconnexion(){
+
+    public static void Deconnexion() {
         profilConnecte = Service.deconnecterUtilisateur();
     }
-    
-    public static void AfficherProfil(){
+
+    public static void AfficherProfil() {
         System.out.println("*********** Affichage du profil client ***********");
-        if(profilConnecte.equals("Client")) {
+        if (profilConnecte.equals("Client")) {
             List<String> profilClient = Service.afficherProfilClient(clientConnecte);
-            Iterator<String> iter = profilClient.iterator(); 
-            while (iter.hasNext()) { 
+            Iterator<String> iter = profilClient.iterator();
+            while (iter.hasNext()) {
                 System.out.println(iter.next());
             }
         }
     }
-    
-    public static void AfficherHistorique(){
+
+    public static void AfficherHistorique() {
         System.out.println("*********** Affichage de l'historique client ***********");
-        if(profilConnecte.equals("Client")) {
+        if (profilConnecte.equals("Client")) {
             List<Voyance> historiqueClient = Service.afficherHistoriqueClient(clientConnecte);
-            Iterator<Voyance> iter3 = historiqueClient.iterator(); 
-            while (iter3.hasNext()) { 
+            Iterator<Voyance> iter3 = historiqueClient.iterator();
+            while (iter3.hasNext()) {
                 Voyance v = iter3.next();
-                System.out.println(v.getDateDebut()+ " " + v.getHeureFin() + " " + v.getMedium().getNom()+ " " + v.getCommentaire() );
+                System.out.println(v.getDateDebut() + " " + v.getHeureFin() + " " + v.getMedium().getNom() + " " + v.getCommentaire());
             }
         }
     }
-    
-    public static void DemanderVoyance(){
+
+    public static void DemanderVoyance() {
         System.out.println("*********** Choix du médium ***********");
-        if(profilConnecte.equals("Client")) {    
-            
+        if (profilConnecte.equals("Client")) {
+
             List<Medium> mediumsVoyant = Service.afficherMediums();
-            Iterator<Medium> iter = mediumsVoyant.iterator(); 
-            while (iter.hasNext()) { 
-                System.out.println( iter.next());
+            Iterator<Medium> iter = mediumsVoyant.iterator();
+            while (iter.hasNext()) {
+                System.out.println(iter.next());
             }
-            
+
             int mediumSouhaite = Saisie.lireInteger("Indiquez l'ID  du médium souhaité : ");
-            Service.creerVoyance(clientConnecte,mediumSouhaite);
-      
+            Service.creerVoyance(clientConnecte, mediumSouhaite);
+
         }
     }
-    
-    public static Voyance VerifierVoyance(){
+
+    public static Voyance VerifierVoyance() {
         System.out.println("*********** Rechercher une voyance ***********");
         Voyance voyanceAFaire = Service.trouverVoyanceAFaireDunEmploye(employeConnecte);
-        if(voyanceAFaire != null) {
+        if (voyanceAFaire != null) {
             System.out.println("*********** Afficher profil client ***********");
             List<String> profilClient = Service.afficherProfilClient(voyanceAFaire.getClient());
-            Iterator<String> iter = profilClient.iterator(); 
-            while (iter.hasNext()) { 
+            Iterator<String> iter = profilClient.iterator();
+            while (iter.hasNext()) {
                 System.out.println(iter.next());
             }
             System.out.println("*********** Afficher historique client ***********");
             List<Voyance> historiqueClient = Service.afficherHistoriqueClient(voyanceAFaire.getClient());
-            Iterator<Voyance> iter3 = historiqueClient.iterator(); 
-            while (iter3.hasNext()) { 
+            Iterator<Voyance> iter3 = historiqueClient.iterator();
+            while (iter3.hasNext()) {
                 Voyance v = iter3.next();
-                System.out.println(v.getDateDebut()+ " " + v.getHeureFin() + " " + v.getMedium().getNom()+ " " + v.getCommentaire() );
+                System.out.println(v.getDateDebut() + " " + v.getHeureFin() + " " + v.getMedium().getNom() + " " + v.getCommentaire());
             }
         }
         return voyanceAFaire;
     }
-    
-    public static Voyance DemarrerUneVoyance(Voyance v){
+
+    public static Voyance DemarrerUneVoyance(Voyance v) {
         System.out.println("*********** Démarrer la voyance ***********");
         v = Service.demarrerVoyance(employeConnecte);
         System.out.println("*********** Générer phrases ***********");
-        int amour = Saisie.lireInteger("Amour : ",Arrays.asList(1,2,3,4));
-        int sante = Saisie.lireInteger("Santé : ",Arrays.asList(1,2,3,4));
-        int travail = Saisie.lireInteger("Travail : ",Arrays.asList(1,2,3,4));
+        int amour = Saisie.lireInteger("Amour : ", Arrays.asList(1, 2, 3, 4));
+        int sante = Saisie.lireInteger("Santé : ", Arrays.asList(1, 2, 3, 4));
+        int travail = Saisie.lireInteger("Travail : ", Arrays.asList(1, 2, 3, 4));
 
-        List<String> phraseGenerees = Service.generePhrases(v.getClient().getCouleurPB(),v.getClient().getAnimalTotem(),amour,sante,travail);
-        Iterator<String> iter2 = phraseGenerees.iterator(); 
-        while (iter2.hasNext()) { 
-            System.out.println( iter2.next());
+        List<String> phraseGenerees = Service.generePhrases(v.getClient().getCouleurPB(), v.getClient().getAnimalTotem(), amour, sante, travail);
+        Iterator<String> iter2 = phraseGenerees.iterator();
+        while (iter2.hasNext()) {
+            System.out.println(iter2.next());
         }
         return v;
     }
-    
-    public static void TerminerVoyance(Voyance v){
+
+    public static void TerminerVoyance(Voyance v) {
         System.out.println("*********** Terminer voyance ***********");
         String commentaire = Saisie.lireChaine("Indiquez votre commentaire : ");
         String heureFin = Saisie.lireChaine("Indiquez l'heure de fin : ");
-        Service.terminerVoyance(v,commentaire,heureFin,employeConnecte);
+        Service.terminerVoyance(v, commentaire, heureFin, employeConnecte);
     }
-    
-    public static void AfficherStats (){
+
+    public static void AfficherStats() {
         System.out.println("*********** Afficher statistiques ***********");
         List<Object[]> resultats = Service.statsNbVoyancesParMedium();
-        for (int i=0; i<resultats.size(); i++) {
-            Object[] arr= resultats.get(i);
+        for (int i = 0; i < resultats.size(); i++) {
+            Object[] arr = resultats.get(i);
             for (Object arr1 : arr) {
                 System.out.print(arr1 + " ");
             }
             System.out.println("");
-        }  
+        }
 
         List<Object[]> res = Service.statsNbClientsDistinctsEmploye();
-        for (int i=0; i<res.size(); i++) {
-            Object[] r= res.get(i);
+        for (int i = 0; i < res.size(); i++) {
+            Object[] r = res.get(i);
             for (Object r1 : r) {
                 System.out.print(r1 + " ");
             }
@@ -182,8 +182,8 @@ public class TestApplication {
         }
 
         List<Object[]> res2 = Service.statsNbClientsTotalEmploye();
-        for (int i=0; i<res2.size(); i++) {
-            Object[] r= res2.get(i);
+        for (int i = 0; i < res2.size(); i++) {
+            Object[] r = res2.get(i);
             for (Object r1 : r) {
                 System.out.print(r1 + " ");
             }
@@ -200,15 +200,15 @@ public class TestApplication {
         profilConnecte = "Aucun";
         String choix = "";
         System.out.println("Bienvenue sur la plateforme Posit'if");
-        
-        while (!choix.equals("Q")){
+
+        while (!choix.equals("Q")) {
             System.out.println("Que voulez vous faire?");
-            if (profilConnecte.equals("Aucun")){
+            if (profilConnecte.equals("Aucun")) {
                 System.out.println("C : Se connecter");
                 System.out.println("I : S'inscrire");
                 System.out.println("Q : Quitter");
-                choix=Saisie.lireChaine("");
-                switch(choix){
+                choix = Saisie.lireChaine("");
+                switch (choix) {
                     case "C":
                         Connexion();
                         break;
@@ -222,7 +222,7 @@ public class TestApplication {
                         break;
                 }
             }
-            if (profilConnecte.equals("Employe")){
+            if (profilConnecte.equals("Employe")) {
                 System.out.println("A : Afficher les statistiques");
                 System.out.println("V : Vérifier les demandes de voyance");
                 System.out.println("D : Se déconnecter");
@@ -234,22 +234,22 @@ public class TestApplication {
                         break;
                     case "V":
                         Voyance v = VerifierVoyance();
-                        if (v!=null){
-                            if (v.getEtat().equals("Non débutée")){
+                        if (v != null) {
+                            if (v.getEtat().equals("Non débutée")) {
                                 System.out.println("Entrez 'D' pour démarrer la voyance");
                                 choix = Saisie.lireChaine("");
-                                if (choix.equals("D")){
-                                    v=DemarrerUneVoyance(v);
+                                if (choix.equals("D")) {
+                                    v = DemarrerUneVoyance(v);
                                 }
                             }
-                            if (v.getEtat().equals("Débutée")){
+                            if (v.getEtat().equals("Débutée")) {
                                 System.out.println("Entrer 'T' pour terminer la voyance");
                                 choix = Saisie.lireChaine("");
-                                if (choix.equals("T")){
+                                if (choix.equals("T")) {
                                     TerminerVoyance(v);
                                 }
                             }
-                        }else{
+                        } else {
                             System.out.println("Aucune demande de voyance en cours");
                         }
                         break;
@@ -262,14 +262,14 @@ public class TestApplication {
                         System.out.println("choix inconnu");
                         break;
                 }
-            } else if (profilConnecte.equals("Client")){
+            } else if (profilConnecte.equals("Client")) {
                 System.out.println("V : Demander une voyance");
                 System.out.println("P : Afficher le profil");
                 System.out.println("H : Afficher l'historique des voyances");
                 System.out.println("D : Se déconnecter");
                 System.out.println("Q : Quitter");
                 choix = Saisie.lireChaine("");
-                switch(choix){
+                switch (choix) {
                     case "V":
                         DemanderVoyance();
                         break;
